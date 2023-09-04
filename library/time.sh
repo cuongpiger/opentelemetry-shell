@@ -26,22 +26,23 @@
 get_epoch_now() {
   local epoch=""
 
-  if hash gdate 2>/dev/null; then
-    if [ -z "${OTEL_LOG_LEVEL-}" ]; then
-      log_debug "Using gdate..."
-    fi
-    epoch="$(gdate +%s.%N)"
-  elif [ -n "${EPOCHREALTIME-}" ]; then
-    if [ -z "${OTEL_LOG_LEVEL-}" ]; then
-      log_debug "Using ${EPOCHREALTIME}..."
-    fi
-    epoch=$EPOCHREALTIME
-  else
-    if [ -z "${OTEL_LOG_LEVEL-}" ]; then
-      log_debug "Using date..."
-    fi
-    epoch=$(date +%s%N)
-  fi
-
-  echo "${epoch//.}"
+  # if hash gdate 2>/dev/null; then
+  #   if [ -z "${OTEL_LOG_LEVEL-}" ]; then
+  #     log_debug "Using gdate..."
+  #   fi
+  #   epoch="$(gdate +%s.%N)"
+  # elif [ -n "${EPOCHREALTIME-}" ]; then
+  #   if [ -z "${OTEL_LOG_LEVEL-}" ]; then
+  #     log_debug "Using ${EPOCHREALTIME}..."
+  #   fi
+  #   epoch=$EPOCHREALTIME
+  # else
+  #   if [ -z "${OTEL_LOG_LEVEL-}" ]; then
+  #     log_debug "Using date..."
+  #   fi
+  #   epoch=$(date +%s%N)
+  # fi
+  
+  epoch=$(date +%s%N)
+  echo "${epoch//./}"
 }

@@ -27,6 +27,7 @@ service_version="0.0.1-dev"
 
 # Export library path
 export OTEL_SH_LIB_PATH="../../library"
+export OTEL_EXPORTER_OTEL_ENDPOINT="http://localhost:4318"
 
 # Import functions
 . "${OTEL_SH_LIB_PATH}/otel_traces.sh"
