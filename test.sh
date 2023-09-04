@@ -17,8 +17,6 @@ sleep_for() {
 }
 
 # Start a parent span
-otel_trace_start_parent_span sleep_for 1
+# otel_trace_start_parent_span sleep_for 1
 # Start a child span, associated to the parent
 otel_trace_start_child_span sleep_for 2
-
-# log_info "TraceId: ${OTEL_TRACE_ID}"
