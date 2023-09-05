@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export OTEL_EXPORTER_OTEL_ENDPOINT="http://localhost:4318"
+export OTEL_EXPORTER_OTEL_ENDPOINT="http://49.213.90.206:4318"
 export OTEL_SH_LIB_PATH="./library"
 export OTEL_SERVICE_NAME="test-service"
 
@@ -20,3 +20,5 @@ sleep_for() {
 # otel_trace_start_parent_span sleep_for 1
 # Start a child span, associated to the parent
 otel_trace_start_child_span sleep_for 2
+
+otel_trace_start_child_span sleep_for 3
