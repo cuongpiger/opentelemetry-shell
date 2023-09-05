@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-. "${OTEL_SH_LIB_PATH}/time.sh"
+. ${OTEL_SH_LIB_PATH}/time.sh
 
 # otel_trace_resource_spans stores the .resourceSpans[].resource.attributes[].
 # This is the outer json schema

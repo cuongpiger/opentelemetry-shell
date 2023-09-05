@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-. "${OTEL_SH_LIB_PATH}/log.sh"
+. ${OTEL_SH_LIB_PATH}/log.sh
 
 #######################################
 # Gets the Unix epoch timesyamp in nanoseconds

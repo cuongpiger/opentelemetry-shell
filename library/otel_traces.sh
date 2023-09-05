@@ -14,14 +14,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-. "${OTEL_SH_LIB_PATH}/log.sh"
-. "${OTEL_SH_LIB_PATH}/net.sh"
-. "${OTEL_SH_LIB_PATH}/time.sh"
-. "${OTEL_SH_LIB_PATH}/uuid.sh"
+. ${OTEL_SH_LIB_PATH}/log.sh
+. ${OTEL_SH_LIB_PATH}/net.sh
+. ${OTEL_SH_LIB_PATH}/time.sh
+. ${OTEL_SH_LIB_PATH}/uuid.sh
 
-. "${OTEL_SH_LIB_PATH}/otel_init.sh"
-. "${OTEL_SH_LIB_PATH}/otel_traces_detector.sh"
-. "${OTEL_SH_LIB_PATH}/otel_traces_schema.sh"
+. ${OTEL_SH_LIB_PATH}/otel_init.sh
+. ${OTEL_SH_LIB_PATH}/otel_traces_detector.sh
+. ${OTEL_SH_LIB_PATH}/otel_traces_schema.sh
 
 if [ -z "${OTEL_TRACE_ID-}" ]; then
   export OTEL_TRACE_ID=$(generate_uuid 16)

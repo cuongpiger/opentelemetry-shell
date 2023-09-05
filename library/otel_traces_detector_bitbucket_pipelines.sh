@@ -14,8 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-. "${OTEL_SH_LIB_PATH}/log.sh"
-. "${OTEL_SH_LIB_PATH}/strings.sh"
+. ${OTEL_SH_LIB_PATH}/log.sh
+. ${OTEL_SH_LIB_PATH}/strings.sh
 
 log_info "Detected, Bitbucket Pipelines..."
 
