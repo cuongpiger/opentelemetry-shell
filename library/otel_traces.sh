@@ -14,18 +14,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-. "${OTEL_SH_LIB_PATH}/log.sh"
-. "${OTEL_SH_LIB_PATH}/net.sh"
-. "${OTEL_SH_LIB_PATH}/time.sh"
-. "${OTEL_SH_LIB_PATH}/uuid.sh"
+. ${OTEL_SH_LIB_PATH}/log.sh
+. ${OTEL_SH_LIB_PATH}/net.sh
+. ${OTEL_SH_LIB_PATH}/time.sh
+. ${OTEL_SH_LIB_PATH}/uuid.sh
 
-. "${OTEL_SH_LIB_PATH}/otel_init.sh"
-. "${OTEL_SH_LIB_PATH}/otel_traces_detector.sh"
-. "${OTEL_SH_LIB_PATH}/otel_traces_schema.sh"
-
+. ${OTEL_SH_LIB_PATH}/otel_init.sh
+. ${OTEL_SH_LIB_PATH}/otel_traces_detector.sh
+. ${OTEL_SH_LIB_PATH}/otel_traces_schema.sh
 
 if [ -z "${OTEL_TRACE_ID-}" ]; then
-  export OTEL_TRACE_ID=$(generate_uuid 16)
+    export OTEL_TRACE_ID=$(generate_uuid 16)
 fi
 
 export PARENT_SPAN_ID=""
@@ -44,67 +43,67 @@ export PARENT_SPAN_ID=""
 #   0 if curl succeeds, non-zero on error.
 #######################################
 otel_trace_start_parent_span() {
-	local name=$1
-	local span_id=$(generate_uuid 8)
+    local name=$1
+    local span_id=$(generate_uuid 8)
 
-	local start_time_unix_nano=$(get_epoch_now)
-  local exit_code=0
-	"$@" && exit_code=$? || exit_code=$?
-  # { local capture=$( { { "$@" && exit_code=$? ; } 1>&3 ; } 2>&1); } 3>&1
-  log_debug "Command: ${*} Errorlevel: ${exit_code}"
-	local end_time_unix_nano=$(get_epoch_now)
+    local start_time_unix_nano=$(get_epoch_now)
+    local exit_code=0
+    "$@" && exit_code=$? || exit_code=$?
+    # { local capture=$( { { "$@" && exit_code=$? ; } 1>&3 ; } 2>&1); } 3>&1
+    log_debug "Command: ${*} Errorlevel: ${exit_code}"
+    local end_time_unix_nano=$(get_epoch_now)
 
-	if [ -n "${custom_resource_attributes-}" ]; then
-    log_debug "Appending custom resource attributes"
-		for attr in "${custom_resource_attributes[@]}"; do
-			otel_trace_add_resourcespan_resource_attrib_string "${attr%%:*}" "${attr#*:}"
-		done
-	fi
+    if [ -n "${custom_resource_attributes-}" ]; then
+        log_debug "Appending custom resource attributes"
+        for attr in "${custom_resource_attributes[@]}"; do
+            otel_trace_add_resourcespan_resource_attrib_string "${attr%%:*}" "${attr#*:}"
+        done
+    fi
 
-  if [ -n "${detector_resource_attributes-}" ]; then
-    log_debug "Appending detector resource attributes"
-		for attr in "${detector_resource_attributes[@]}"; do
-			otel_trace_add_resourcespan_resource_attrib_string "${attr%%:*}" "${attr#*:}"
-		done
-	fi
+    if [ -n "${detector_resource_attributes-}" ]; then
+        log_debug "Appending detector resource attributes"
+        for attr in "${detector_resource_attributes[@]}"; do
+            otel_trace_add_resourcespan_resource_attrib_string "${attr%%:*}" "${attr#*:}"
+        done
+    fi
 
-	otel_trace_add_resource_scopespans_span "$name" \
-		"$OTEL_TRACE_ID" \
-		"$span_id" \
-		'' \
-		"$start_time_unix_nano" \
-		"$end_time_unix_nano" \
-		"$exit_code"
+    otel_trace_add_resource_scopespans_span "$name" \
+        "$OTEL_TRACE_ID" \
+        "$span_id" \
+        '' \
+        "$start_time_unix_nano" \
+        "$end_time_unix_nano" \
+        "$exit_code"
 
-  otel_trace_add_resourcespan_scopespans_spans_attrib_string "command" "$*"
-  otel_trace_add_resourcespan_scopespans_spans_attrib_string "errorlevel" "${exit_code}"
-  otel_trace_add_resourcespan_scopespans_spans_attrib_string "code.url" "${PWD}/${0##*/}#L${BASH_LINENO[0]}"
+    otel_trace_add_resourcespan_scopespans_spans_attrib_string "command" "$*"
+    otel_trace_add_resourcespan_scopespans_spans_attrib_string "errorlevel" "${exit_code}"
+    otel_trace_add_resourcespan_scopespans_spans_attrib_string "code.url" "${PWD}/${0##*/}#L${BASH_LINENO[0]}"
 
-  if [ -z "${FUNCNAME-}" ]; then
-		otel_trace_add_resourcespan_scopespans_spans_attrib_string "function" "${FUNCNAME[1]}()"
-	fi
+    if [ -z "${FUNCNAME-}" ]; then
+        otel_trace_add_resourcespan_scopespans_spans_attrib_string "function" "${FUNCNAME[1]}()"
+    fi
 
-  if [ -z "${OTEL_LOG_LEVEL-}" ]; then
-		log_debug "curling ${OTEL_EXPORTER_OTEL_ENDPOINT}/v1/traces"
-    net_client_post "${otel_trace_resource_spans}" "${OTEL_EXPORTER_OTEL_ENDPOINT}/v1/traces"
-	else
-    log_debug "[$( caller )] $*" >&2
-    log_debug "BASH_SOURCE: ${BASH_SOURCE[*]}"
-    log_debug "BASH_LINENO: ${BASH_LINENO[*]}"
-    log_debug "FUNCNAME: ${FUNCNAME[*]}"
+    if [ -z "${OTEL_LOG_LEVEL-}" ]; then
+        log_debug "curling ${OTEL_EXPORTER_OTEL_ENDPOINT}/v1/traces"
+        net_client_post "${otel_trace_resource_spans}" "${OTEL_EXPORTER_OTEL_ENDPOINT}/v1/traces"
+    else
+        log_debug "[$(caller)] $*" >&2
+        log_debug "BASH_SOURCE: ${BASH_SOURCE[*]}"
+        log_debug "BASH_LINENO: ${BASH_LINENO[*]}"
+        log_debug "FUNCNAME: ${FUNCNAME[*]}"
 
-		log_debug "traceId: ${OTEL_TRACE_ID}"
-		log_debug "spanId: ${span_id}"
-		log_debug "parentSpanId: ${PARENT_SPAN_ID}"
-    net_client_post "${otel_trace_resource_spans}" "${OTEL_EXPORTER_OTEL_ENDPOINT}/v1/traces"
-	fi
+        log_debug "traceId: ${OTEL_TRACE_ID}"
+        log_debug "spanId: ${span_id}"
+        log_debug "parentSpanId: ${PARENT_SPAN_ID}"
+        net_client_post "${otel_trace_resource_spans}" "${OTEL_EXPORTER_OTEL_ENDPOINT}/v1/traces"
+    fi
 
-	if [ $exit_code -ne 0 ]; then
-		log_fatal "Exiting with Errorlevel: ${exit_code}"
-    exit $exit_code
-	fi
+    if [ $exit_code -ne 0 ]; then
+        log_fatal "Exiting with Errorlevel: ${exit_code}"
+        exit $exit_code
+    fi
 
-	PARENT_SPAN_ID=${span_id}
+    PARENT_SPAN_ID=${span_id}
 }
 
 #######################################
@@ -121,67 +120,83 @@ otel_trace_start_parent_span() {
 #   0 if curl succeeds, non-zero on error.
 #######################################
 otel_trace_start_child_span() {
-	local name=$1
-	local span_id=$(generate_uuid 8)
+    local name=$1
+    local span_id=$(generate_uuid 8)
 
-	local start_time_unix_nano=$(get_epoch_now)
-  local exit_code=0
-	"$@" && exit_code=$? || exit_code=$?
-  # { local capture=$( { { "$@" && exit_code=$? ; } 1>&3 ; } 2>&1); } 3>&1
-  log_debug "Command: ${*} Errorlevel: ${exit_code}"
-	local end_time_unix_nano=$(get_epoch_now)
+    local start_time_unix_nano=$(get_epoch_now)
+    local exit_code=0
+    "$@" && exit_code=$? || exit_code=$?
+    # { local capture=$( { { "$@" && exit_code=$? ; } 1>&3 ; } 2>&1); } 3>&1
+    log_debug "Command: ${*} Errorlevel: ${exit_code}"
+    local end_time_unix_nano=$(get_epoch_now)
 
-	if [ -n "${custom_resource_attributes-}" ]; then
-    log_debug "Appending custom resource attributes"
-		for attr in "${custom_resource_attributes[@]}"; do
-			otel_trace_add_resourcespan_resource_attrib_string "${attr%%:*}" "${attr#*:}"
-		done
-	fi
+    if [ -n "${custom_resource_attributes-}" ]; then
+        echo "here"
+        log_debug "Appending custom resource attributes"
+        for attr in "${custom_resource_attributes[@]}"; do
+            otel_trace_add_resourcespan_resource_attrib_string "${attr%%:*}" "${attr#*:}"
+        done
+    fi
 
-  if [ -n "${detector_resource_attributes-}" ]; then
-    log_debug "Appending detector resource attributes"
-		for attr in "${detector_resource_attributes[@]}"; do
-			otel_trace_add_resourcespan_resource_attrib_string "${attr%%:*}" "${attr#*:}"
-		done
-	fi
+    if [ -n "${detector_resource_attributes-}" ]; then
+        log_debug "Appending detector resource attributes"
+        for attr in "${detector_resource_attributes[@]}"; do
+            otel_trace_add_resourcespan_resource_attrib_string "${attr%%:*}" "${attr#*:}"
+        done
+    fi
 
-	otel_trace_add_resource_scopespans_span "$name" \
-		"$OTEL_TRACE_ID" \
-		"$span_id" \
-		"$PARENT_SPAN_ID" \
-		"$start_time_unix_nano" \
-		"$end_time_unix_nano" \
-		"$exit_code"
+    trace_data="${otel_trace_resource_spans}"
+    trace_data=$(otel_trace_add_resource_scopespans_span "$trace_data" \
+        "$name" \
+        "$OTEL_TRACE_ID" \
+        "$span_id" \
+        "$PARENT_SPAN_ID" \
+        "$start_time_unix_nano" \
+        "$end_time_unix_nano" \
+        "$exit_code")
 
-  otel_trace_add_resourcespan_scopespans_spans_attrib_string "command" "$*"
-  otel_trace_add_resourcespan_scopespans_spans_attrib_string "errorlevel" "${exit_code}"
-  otel_trace_add_resourcespan_scopespans_spans_attrib_string "function" "${FUNCNAME[1]}()"
+    # otel_trace_add_resourcespan_scopespans_spans_attrib_string "command" "$*"
+    # otel_trace_add_resourcespan_scopespans_spans_attrib_string "errorlevel" "${exit_code}"
+    # otel_trace_add_resourcespan_scopespans_spans_attrib_string "function" "${FUNCNAME[1]}()"
 
-  if [ -z "${FUNCNAME-}" ]; then
-		otel_trace_add_resourcespan_scopespans_spans_attrib_string "function" "${FUNCNAME[1]}()"
-	fi
+    if [ -z "${FUNCNAME-}" ]; then
+        otel_trace_add_resourcespan_scopespans_spans_attrib_string "function" "${FUNCNAME[1]}()"
+    fi
 
-  otel_trace_add_resourcespan_scopespans_spans_attrib_string "code.url" "${PWD}/${0##*/}#L${BASH_LINENO[0]}"
+    # otel_trace_add_resourcespan_scopespans_spans_attrib_string "code.url" "${PWD}/${0##*/}#L${BASH_LINENO[0]}"
 
-  if [ -z "${OTEL_LOG_LEVEL-}" ]; then
-    net_client_post "${otel_trace_resource_spans}" "${OTEL_EXPORTER_OTEL_ENDPOINT}/v1/traces"
-	else
-    log_debug "[$( caller )] $*" >&2
-    log_debug "BASH_SOURCE: ${BASH_SOURCE[*]}"
-    log_debug "BASH_LINENO: ${BASH_LINENO[*]}"
-    log_debug "FUNCNAME: ${FUNCNAME[*]}"
+    if [ -z "${OTEL_LOG_LEVEL-}" ]; then
+        net_client_post "${trace_data}" "${OTEL_EXPORTER_OTEL_ENDPOINT}/v1/traces"
+    else
+        log_debug "[$(caller)] $*" >&2
+        log_debug "BASH_SOURCE: ${BASH_SOURCE[*]}"
+        log_debug "BASH_LINENO: ${BASH_LINENO[*]}"
+        log_debug "FUNCNAME: ${FUNCNAME[*]}"
 
-		log_debug "traceId: ${OTEL_TRACE_ID}"
-		log_debug "spanId: ${span_id}"
-		log_debug "parentSpanId: ${PARENT_SPAN_ID}"
-		log_debug "OTEL_EXPORTER_OTEL_ENDPOINT=${OTEL_EXPORTER_OTEL_ENDPOINT}"
-    net_client_post "${otel_trace_resource_spans}" "${OTEL_EXPORTER_OTEL_ENDPOINT}/v1/traces"
-	fi
+        log_debug "traceId: ${OTEL_TRACE_ID}"
+        log_debug "spanId: ${span_id}"
+        log_debug "parentSpanId: ${PARENT_SPAN_ID}"
+        log_debug "OTEL_EXPORTER_OTEL_ENDPOINT=${OTEL_EXPORTER_OTEL_ENDPOINT}"
+        net_client_post "${trace_data}" "${OTEL_EXPORTER_OTEL_ENDPOINT}/v1/traces"
+    fi
 
-  if [ "$exit_code" -ne 0 ]; then
-		log_fatal "Exiting with Errorlevel: ${exit_code}"
-    exit $exit_code
-	fi
+    if [ "$exit_code" -ne 0 ]; then
+        log_fatal "Exiting with Errorlevel: ${exit_code}"
+        exit $exit_code
+    fi
 
-	PARENT_SPAN_ID=${span_id}
+    PARENT_SPAN_ID=${span_id}
 }
+
+option="${1:-}"
+case ${option} in
+--start-parent-span)
+    shift
+    otel_trace_start_parent_span "$@"
+    ;;
+--start-child-span)
+    shift
+    otel_trace_start_child_span "$@"
+    ;;
+*) ;;
+esac
